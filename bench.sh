@@ -108,7 +108,7 @@ bench_btrfs() {
 
 bench_zfs_zvol() {
     local volblocksize=$1
-    local ashift=${2:-12}
+    local ashift=${2:-0} # Default to 0, which means ZFS will choose the best value
     local primarycache=${3:-metadata}
     local compression=${4:-off}
 
@@ -117,10 +117,22 @@ bench_zfs_zvol() {
 
     header "ZFS zvol with volblocksize=$volblocksize, ashift=$ashift, primarycache=$primarycache, compression=$compression:"
 
-    zpool create -f -o ashift="$ashift" "$zpool_name" "$TARGET"
-    zfs create -V 100G -b "$volblocksize" -o compression=off -o primarycache=metadata "$zpool_name/$zvol_name"
+    # Drop caches
+    # echo 3 | tee /proc/sys/vm/drop_caches
+
+    zpool create -f \
+        -o ashift="$ashift" \
+        -O primarycache="$primarycache" \
+        -O secondarycache=none \
+        -O compression="$compression" \
+        -O atime=off \
+        "$zpool_name" "$TARGET"
+
+    zfs create -V 100G -b "$volblocksize" "$zpool_name/$zvol_name" 2>/dev/null
 
     run_fio "/dev/zvol/$zpool_name/$zvol_name"
+
+    sleep 5 # Allow ZFS to flush any pending writes
     zfs destroy -f "$zpool_name/$zvol_name"
     zpool destroy "$zpool_name"
 }

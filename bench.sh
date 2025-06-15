@@ -86,7 +86,7 @@ run_fio() {
 }
 
 bench_raw() {
-    echo "Raw disk $TARGET:"
+    header "Raw disk $TARGET:"
     run_fio "$TARGET"
 }
 
@@ -95,7 +95,7 @@ bench_btrfs() {
     [[ $1 == "cow" ]] && args="" || args=",nodatacow"
     local bench_dir=/mnt/btrfs-bench
 
-    header "Btrfs $([[ $1 == "cow" ]] && echo cow || echo nodatacow),noatime:"
+    header "Btrfs $([[ $1 == "cow" ]] && echo cow || echo nodatacow),noatime,defaults:"
     parted -s "$TARGET" mklabel gpt
     parted -s "$TARGET" mkpart btrfs 0% 100%
     mkfs.btrfs -f "$TARGET"1 >/dev/null

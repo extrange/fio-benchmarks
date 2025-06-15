@@ -100,7 +100,7 @@ bench_btrfs() {
     parted -s "$TARGET" mkpart btrfs 0% 100%
     mkfs.btrfs -f "$TARGET"1 >/dev/null
     mkdir -p "$bench_dir"
-    mount -o "noatime$args" "$TARGET"1 "$bench_dir"
+    mount -o "noatime$args,defaults" "$TARGET"1 "$bench_dir"
     run_fio "$bench_dir/bench.fio"
     umount "$bench_dir"
     rmdir "$bench_dir"

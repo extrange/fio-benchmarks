@@ -9,7 +9,6 @@ direct=1
 time_based=1
 runtime=5
 group_reporting=1
-sync=1
 
 [SEQ1M_Q8T1_read]
 bs=1m

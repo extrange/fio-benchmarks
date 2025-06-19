@@ -2,6 +2,10 @@
 
 Collection of `fio` scripts for benchmarking HDDs/SSDs and various filesystems/parameters.
 
+## Notes regarding results
+
+On COW filesystems, random writes with high queue depths may exceed that of the raw disk, since the writes can happen sequentially on disk (the filesystem maps them to the correct locations in the file). The same reasoning applies as to why random writes with Btrfs `nodatacow` are slower: as COW is turned off, the writes happen (randomly) in-place on disk.
+
 ## Notes regarding ZFS zvol testing
 
 For reasons inexplicable to me, if [`sync=0`], testing on ZFS zvols takes extremely long.

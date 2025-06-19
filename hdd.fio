@@ -1,6 +1,5 @@
 # https://fio.readthedocs.io/en/latest/fio_doc.html#job-file-format
 # https://tobert.github.io/post/2014-04-17-fio-output-explained.html
-
 [global]
 size=1024m
 stonewall

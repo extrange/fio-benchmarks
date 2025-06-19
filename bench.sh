@@ -29,7 +29,8 @@ test_deps() {
 
 _fio() {
     local filename=$1
-    fio --output-format=json --filename="$filename" "$JOBFILE"
+    local sync=${2:-0} # Default to 0 (asynchronous)
+    fio --output-format=json --filename="$filename" --sync="$sync" "$JOBFILE"
 }
 
 confirm() {
@@ -82,7 +83,9 @@ header() {
 
 run_fio() {
     local filename=$1
-    pretty_print <(_fio "$filename")
+    local sync=${2:-0} # Default to 0 (asynchronous)
+    echo "Running fio with sync=$sync..."
+    pretty_print <(_fio "$filename" "$sync")
 }
 
 bench_raw() {
@@ -130,10 +133,37 @@ bench_zfs_zvol() {
 
     zfs create -V 100G -b "$volblocksize" "$zpool_name/$zvol_name" 2>/dev/null
 
-    run_fio "/dev/zvol/$zpool_name/$zvol_name"
+    run_fio "/dev/zvol/$zpool_name/$zvol_name" 1
 
     sleep 5 # Allow ZFS to flush any pending writes
     zfs destroy -f "$zpool_name/$zvol_name"
+    zpool destroy "$zpool_name"
+}
+
+bench_zfs_dataset() {
+    local recordsize=$1
+    local ashift=${2:-0}
+    local primarycache=${3:-metadata}
+    local compression=${4:-off}
+
+    local zpool_name="bench-zfs-$recordsize-$ashift"
+
+    header "ZFS dataset with atime=off, recordsize=$recordsize, ashift=$ashift, primarycache=$primarycache, compression=$compression:"
+
+    zpool create -f \
+        -o ashift="$ashift" \
+        -O primarycache="$primarycache" \
+        -O secondarycache=none \
+        -O compression="$compression" \
+        -O atime=off \
+        "$zpool_name" "$TARGET"
+
+    zfs create -o recordsize="$recordsize" "$zpool_name/bench" 2>/dev/null
+
+    run_fio "/$zpool_name/bench/bench.fio"
+
+    sleep 5 # Allow ZFS to flush any pending writes
+    zfs destroy -r "$zpool_name/bench"
     zpool destroy "$zpool_name"
 }
 
@@ -143,6 +173,7 @@ confirm
 bench_raw
 bench_btrfs cow
 bench_btrfs nodatacow
+bench_zfs_dataset 128k 0 metadata off
 bench_zfs_zvol 4K 12 metadata off
 bench_zfs_zvol 4K 12 none off
 bench_zfs_zvol 16K 12 metadata off

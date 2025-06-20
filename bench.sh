@@ -2,6 +2,7 @@
 set -euo pipefail
 
 if [ $# -ne 2 ]; then
+    echo "Replicates Crystal Disk Mark 8 benchmark."
     echo "Usage: $0 <jobfile> <disk>"
     echo "E.g.: $0 hdd.fio /dev/sdf"
     exit 1

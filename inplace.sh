@@ -150,7 +150,7 @@ SEQ1M_Q8T1 Write: $(fio --output-format=json --section=seq_write --filename="$fi
 
     local bg_pid=$!
 
-    echo -e "RND4K_Q32T1 Write: $(fio --output-format=json --section=rand_write --filename="$filename" "$JOBFILE" | jq -r '.jobs[] | select(.jobname == "rand_write").write.bw.iops | floor') MB/s"
+    echo -e "RND4K_Q32T1 Write: $(fio --output-format=json --section=rand_write --filename="$filename" "$JOBFILE" | jq -r '.jobs[] | select(.jobname == "rand_write").write.iops | floor') IOPS"
 
     kill $bg_pid
 

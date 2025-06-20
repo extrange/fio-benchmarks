@@ -2,18 +2,16 @@
 
 Collection of `fio` scripts for benchmarking HDDs/SSDs and various filesystems/parameters.
 
-## Notes regarding results
+[Interpreting fio output]
 
-On COW filesystems, random writes with high queue depths may exceed that of the raw disk, since the writes can happen sequentially on disk (the filesystem maps them to the correct locations in the file). The same reasoning applies as to why random writes with Btrfs `nodatacow` are slower: as COW is turned off, the writes happen (randomly) in-place on disk.
-
-## Notes regarding ZFS zvol testing
+## ZFS zvol testing
 
 For reasons inexplicable to me, if [`sync=0`], testing on ZFS zvols takes extremely long.
 
 The following have been observed:
 
 - Slowdown is proportional to drive size (1TB drive hangs for ~24m, 10TB drive hangs for 2hr30min)
-- Happens for ZFS zvols. Does not happen for the raw disk or Btrfs.
+- Happens for ZFS zvols. Does not happen for the raw disk, Btrfs or ZFS datasets..
 - Both sequential-only and random-only tests cause this
 - `fio` is stuck in the `D` state (uninterruptible sleep).
 
@@ -26,3 +24,4 @@ Probing further, `fio` is waiting on `cv_timedwait_common`:
 ```
 
 [`sync=0`]: https://fio.readthedocs.io/en/latest/fio_doc.html#cmdoption-arg-sync
+[Interpreting fio output]: https://fio.readthedocs.io/en/latest/fio_doc.html#interpreting-the-output
